@@ -9,8 +9,8 @@ export default function AcmeLogo() {
     >
       <GlobeAltIcon className="h-12 w-12 rotate-[15deg]" />
       <Image src="/logo.png" 
-        width={20}
-        height={20}
+        width={40}
+        height={40}
         alt="DataVerse" className="text-[44px]" 
       />
     </div>
