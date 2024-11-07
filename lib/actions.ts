@@ -1,6 +1,7 @@
 'use server';
  
-import { signIn } from '@/auth';
+// import { signIn } from '@/auth';
+import { signIn } from '@/app/api/auth/[...nextauth]';
 import { AuthError } from 'next-auth';
  
 // ...
