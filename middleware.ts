@@ -1,9 +1,10 @@
+// middleware.ts (or _middleware.ts in some setups)
+
 import NextAuth from 'next-auth';
 import { authConfig } from './auth.config';
- 
-export default NextAuth(authConfig).auth;
- 
+
+export default NextAuth(authConfig);
+
 export const config = {
-  // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
   matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
 };
