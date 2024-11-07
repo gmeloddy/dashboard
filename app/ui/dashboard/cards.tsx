@@ -7,10 +7,10 @@ import {
 import { lusitana } from '@/app/ui/fonts';
 
 const iconMap = {
-  collected: BanknotesIcon,
-  customers: UserGroupIcon,
-  pending: ClockIcon,
-  invoices: InboxIcon,
+  positive: BanknotesIcon,
+  negative: UserGroupIcon,
+  sentiments: ClockIcon,
+  brands: InboxIcon,
 };
 
 export default async function CardWrapper() {
@@ -32,12 +32,12 @@ export default async function CardWrapper() {
 
 export function Card({
   title,
-  value,
+  sentiments,
   type,
 }: {
   title: string;
-  value: number | string;
-  type: 'invoices' | 'customers' | 'pending' | 'collected';
+  sentiments: any;
+  type: 'positive' | 'negative' | 'sentiments' | 'brands';
 }) {
   const Icon = iconMap[type];
 
@@ -47,12 +47,20 @@ export function Card({
         {Icon ? <Icon className="h-5 w-5 text-gray-700" /> : null}
         <h3 className="ml-2 text-sm font-medium">{title}</h3>
       </div>
-      <p
-        className={`${lusitana.className}
-          truncate rounded-xl bg-white px-4 py-8 text-center text-2xl`}
-      >
-        {value}
-      </p>
+      <div className="flex justify-between p-4">
+        <div className="flex flex-col">
+          <p className="text-sm font-semibold text-gray-700">Positive</p>
+          <p className="text-lg font-bold text-gray-900">
+            {sentiments.positive}
+          </p>
+        </div>
+        <div className="flex flex-col">
+          <p className="text-sm font-semibold text-gray-700">Negative</p>
+          <p className="text-lg font-bold text-gray-900">
+            {sentiments.negative}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

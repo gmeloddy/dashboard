@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { db } from '@vercel/postgres';
-import { invoices, customers, revenue, users } from '../lib/placeholder-data';
+import { sentiment, brands, customerInteractions, users } from '../lib/placeholder-data';
 
 const client = await db.connect();
 
@@ -23,43 +23,17 @@ async function seedUsers() {
         VALUES (${user.id}, ${user.name}, ${user.email}, ${hashedPassword})
         ON CONFLICT (id) DO NOTHING;
       `;
-    }),
+    })
   );
 
   return insertedUsers;
 }
 
-async function seedInvoices() {
+async function seedBrands() {
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
   await client.sql`
-    CREATE TABLE IF NOT EXISTS invoices (
-      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-      customer_id UUID NOT NULL,
-      amount INT NOT NULL,
-      status VARCHAR(255) NOT NULL,
-      date DATE NOT NULL
-    );
-  `;
-
-  const insertedInvoices = await Promise.all(
-    invoices.map(
-      (invoice) => client.sql`
-        INSERT INTO invoices (customer_id, amount, status, date)
-        VALUES (${invoice.customer_id}, ${invoice.amount}, ${invoice.status}, ${invoice.date})
-        ON CONFLICT (id) DO NOTHING;
-      `,
-    ),
-  );
-
-  return insertedInvoices;
-}
-
-async function seedCustomers() {
-  await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-
-  await client.sql`
-    CREATE TABLE IF NOT EXISTS customers (
+    CREATE TABLE IF NOT EXISTS brands (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
       email VARCHAR(255) NOT NULL,
@@ -67,56 +41,79 @@ async function seedCustomers() {
     );
   `;
 
-  const insertedCustomers = await Promise.all(
-    customers.map(
-      (customer) => client.sql`
-        INSERT INTO customers (id, name, email, image_url)
-        VALUES (${customer.id}, ${customer.name}, ${customer.email}, ${customer.image_url})
+  const insertedBrands = await Promise.all(
+    brands.map(
+      (brand) => client.sql`
+        INSERT INTO brands (id, name, email, image_url)
+        VALUES (${brand.id}, ${brand.name}, ${brand.email}, ${brand.image_url})
         ON CONFLICT (id) DO NOTHING;
-      `,
-    ),
+      `
+    )
   );
 
-  return insertedCustomers;
+  return insertedBrands;
 }
 
-async function seedRevenue() {
+async function seedSentiment() {
+  await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+
   await client.sql`
-    CREATE TABLE IF NOT EXISTS revenue (
-      month VARCHAR(4) NOT NULL UNIQUE,
-      revenue INT NOT NULL
+    CREATE TABLE IF NOT EXISTS sentiment (
+      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      brand_id UUID REFERENCES brands(id),
+      name VARCHAR(255) NOT NULL,
+      positive INTEGER NOT NULL,
+      negative INTEGER NOT NULL,
+      date DATE NOT NULL
     );
   `;
 
-  const insertedRevenue = await Promise.all(
-    revenue.map(
+  const insertedSentiment = await Promise.all(
+    sentiment.map(
+      (sentiment) => client.sql`
+        INSERT INTO sentiment (brand_id, name, positive, negative, date)
+        VALUES (${sentiment.brand_id}, ${sentiment.name}, ${sentiment.positive},  ${sentiment.negative}, ${sentiment.date})
+        ON CONFLICT (id) DO NOTHING;
+      `
+    )
+  );
+  return insertedSentiment;
+}
+
+async function seedCustomerInteractions() {
+  await client.sql`
+    CREATE TABLE IF NOT EXISTS customerInteractions (
+      brand VARCHAR(255) NOT NULL UNIQUE,
+      interactions INT NOT NULL
+    );
+  `;
+
+  const insertedCustomerInteractions = await Promise.all(
+    customerInteractions.map(
       (rev) => client.sql`
-        INSERT INTO revenue (month, revenue)
-        VALUES (${rev.month}, ${rev.revenue})
-        ON CONFLICT (month) DO NOTHING;
-      `,
-    ),
+        INSERT INTO customerInteractions (brand, interactions)
+        VALUES (${rev.brand}, ${rev.interactions})
+        ON CONFLICT (brand) DO NOTHING;
+      `
+    )
   );
 
-  return insertedRevenue;
+  return insertedCustomerInteractions;
 }
 
 export async function GET() {
-  // return Response.json({
-  //   message:
-  //     'Uncomment this file and remove this line. You can delete this file when you are finished.',
-  // });
   try {
     await client.sql`BEGIN`;
     await seedUsers();
-    await seedCustomers();
-    await seedInvoices();
-    await seedRevenue();
+    await seedBrands(); // Seed brands before sentiment
+    await seedSentiment();
+    await seedCustomerInteractions();
     await client.sql`COMMIT`;
 
     return Response.json({ message: 'Database seeded successfully' });
   } catch (error) {
     await client.sql`ROLLBACK`;
+    console.error('Seeding error:', error); // Log error for debugging
     return Response.json({ error }, { status: 500 });
   }
 }

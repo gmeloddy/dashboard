@@ -1,26 +1,24 @@
 import { sql } from '@vercel/postgres';
 import {
-  CustomerField,
-  CustomersTableType,
-  InvoiceForm,
-  InvoicesTable,
-  LatestInvoiceRaw,
-  Revenue,
+  BrandField,
+  BrandsTableType,
+  SentimentForm,
+  SentimentTable,
+  LatestSentimentRaw,
+  CustomerInteractions,
 } from './definitions';
-import { formatCurrency } from './utils';
 
-export async function fetchRevenue() {
+// Fetch customer interaction data for the "revenue" section
+export async function fetchBrandInteractions({brandName}: {brandName: string}) {
   try {
-    // Artificially delay a response for demo purposes.
-    // Don't do this in production :)
-
     console.log('Fetching revenue data...');
     await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    const data = await sql<Revenue>`SELECT * FROM revenue`;
+    const data = await sql<CustomerInteractions>`SELECT * FROM customerInteractions
+                                                    WHERE brand = ${brandName}
+                                                  `;
 
     console.log('Data fetch completed after 3 seconds.');
-
     return data.rows;
   } catch (error) {
     console.error('Database Error:', error);
@@ -28,190 +26,182 @@ export async function fetchRevenue() {
   }
 }
 
-export async function fetchLatestInvoices() {
+// Fetch the latest sentiment data, which is similar to the invoices
+export async function fetchLatestSentiments() {
   try {
-    const data = await sql<LatestInvoiceRaw>`
-      SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
-      FROM invoices
-      JOIN customers ON invoices.customer_id = customers.id
-      ORDER BY invoices.date DESC
+    const data = await sql<LatestSentimentRaw>`
+      SELECT sentiment.positive, sentiment.negative, brands.name, brands.image_url, brands.email, sentiment.date
+      FROM sentiment
+      JOIN brands ON sentiment.brand_id = brands.id
+      ORDER BY sentiment.date DESC
       LIMIT 5`;
 
-    const latestInvoices = data.rows.map((invoice) => ({
-      ...invoice,
-      amount: formatCurrency(invoice.amount),
+    const latestSentiments = data.rows.map((sentiment) => ({
+      ...sentiment,
+      positive: sentiment.amount,
+      negative: sentiment.amount,
     }));
-    return latestInvoices;
+    return latestSentiments;
   } catch (error) {
     console.error('Database Error:', error);
-    throw new Error('Failed to fetch the latest invoices.');
+    throw new Error('Failed to fetch the latest sentiments.');
   }
 }
 
-export async function fetchCardData() {
+// Fetch aggregated card data for sentiments
+export async function fetchSentimentCardData({brandName}: {brandName: string}) {
   try {
-    // You can probably combine these into a single SQL query
-    // However, we are intentionally splitting them to demonstrate
-    // how to initialize multiple queries in parallel with JS.
-    const invoiceCountPromise = sql`SELECT COUNT(*) FROM invoices`;
-    const customerCountPromise = sql`SELECT COUNT(*) FROM customers`;
-    const invoiceStatusPromise = sql`SELECT
-         SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) AS "paid",
-         SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) AS "pending"
-         FROM invoices`;
+    const sentimentCountForBrand = await sql`
+      SELECT name, positive, negative
+      FROM sentiment
+      WHERE name = ${brandName}
+    `;
 
-    const data = await Promise.all([
-      invoiceCountPromise,
-      customerCountPromise,
-      invoiceStatusPromise,
-    ]);
+    const data = await  sentimentCountForBrand.rows[0];
 
-    const numberOfInvoices = Number(data[0].rows[0].count ?? '0');
-    const numberOfCustomers = Number(data[1].rows[0].count ?? '0');
-    const totalPaidInvoices = formatCurrency(data[2].rows[0].paid ?? '0');
-    const totalPendingInvoices = formatCurrency(data[2].rows[0].pending ?? '0');
+    // const numberOfSentiments = Number(data[0].rows[0].count ?? '0');
+    // const numberOfBrands = Number(data[1].rows[0].count ?? '0');
+    // const totalPositiveSentiment = Number(data[2].rows[0].positiveSentiment ?? '0');
+    // const totalNegativeSentiment = Number(data[2].rows[0].negativeSentiment ?? '0');
 
-    return {
-      numberOfCustomers,
-      numberOfInvoices,
-      totalPaidInvoices,
-      totalPendingInvoices,
-    };
+    console.log("Values", data );
+
+    return data;
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch card data.');
   }
 }
 
+
 const ITEMS_PER_PAGE = 6;
-export async function fetchFilteredInvoices(
+export async function fetchFilteredSentiments(
   query: string,
   currentPage: number,
 ) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
-    const invoices = await sql<InvoicesTable>`
+    const sentiments = await sql<SentimentTable>`
       SELECT
-        invoices.id,
-        invoices.amount,
-        invoices.date,
-        invoices.status,
-        customers.name,
-        customers.email,
-        customers.image_url
-      FROM invoices
-      JOIN customers ON invoices.customer_id = customers.id
+        sentiment.date,
+        sentiment.positive,
+        sentiment.negative,
+        brands.name,
+        brands.email,
+        brands.image_url
+      FROM sentiment
+      JOIN brands ON sentiment.brand_id = brands.id
       WHERE
-        customers.name ILIKE ${`%${query}%`} OR
-        customers.email ILIKE ${`%${query}%`} OR
-        invoices.amount::text ILIKE ${`%${query}%`} OR
-        invoices.date::text ILIKE ${`%${query}%`} OR
-        invoices.status ILIKE ${`%${query}%`}
-      ORDER BY invoices.date DESC
+        brands.name ILIKE ${`%${query}%`} OR
+        brands.email ILIKE ${`%${query}%`} OR
+        sentiment.positive::text ILIKE ${`%${query}%`} OR
+        sentiment.negative::text ILIKE ${`%${query}%`} OR
+        sentiment.date::text ILIKE ${`%${query}%`}
+      ORDER BY sentiment.date DESC
       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
     `;
 
-    return invoices.rows;
+    return sentiments.rows;
   } catch (error) {
     console.error('Database Error:', error);
-    throw new Error('Failed to fetch invoices.');
+    throw new Error('Failed to fetch filtered sentiments.');
   }
 }
 
-export async function fetchInvoicesPages(query: string) {
+export async function fetchSentimentPages(query: string) {
   try {
     const count = await sql`SELECT COUNT(*)
-    FROM invoices
-    JOIN customers ON invoices.customer_id = customers.id
+    FROM sentiment
+    JOIN brands ON sentiment.brand_id = brands.id
     WHERE
-      customers.name ILIKE ${`%${query}%`} OR
-      customers.email ILIKE ${`%${query}%`} OR
-      invoices.amount::text ILIKE ${`%${query}%`} OR
-      invoices.date::text ILIKE ${`%${query}%`} OR
-      invoices.status ILIKE ${`%${query}%`}
+      brands.name ILIKE ${`%${query}%`} OR
+      brands.email ILIKE ${`%${query}%`} OR
+      sentiment.positive::text ILIKE ${`%${query}%`} OR
+      sentiment.negative::text ILIKE ${`%${query}%`} OR
+      sentiment.date::text ILIKE ${`%${query}%`}
   `;
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
   } catch (error) {
     console.error('Database Error:', error);
-    throw new Error('Failed to fetch total number of invoices.');
+    throw new Error('Failed to fetch total number of sentiments.');
   }
 }
 
-export async function fetchInvoiceById(id: string) {
+export async function fetchSentimentById(id: string) {
   try {
-    const data = await sql<InvoiceForm>`
+    const data = await sql<SentimentForm>`
       SELECT
-        invoices.id,
-        invoices.customer_id,
-        invoices.amount,
-        invoices.status
-      FROM invoices
-      WHERE invoices.id = ${id};
+        sentiment.positive,
+        sentiment.negative,
+        sentiment.date
+      FROM sentiment
+      WHERE sentiment.id = ${id};
     `;
 
-    const invoice = data.rows.map((invoice) => ({
-      ...invoice,
-      // Convert amount from cents to dollars
-      amount: invoice.amount / 100,
+    const sentiment = data.rows.map((sentiment) => ({
+      ...sentiment,
+      positive: sentiment.positive,
+      negative: sentiment.negative,
     }));
 
-    return invoice[0];
+    return sentiment[0];
   } catch (error) {
     console.error('Database Error:', error);
-    throw new Error('Failed to fetch invoice.');
+    throw new Error('Failed to fetch sentiment.');
   }
 }
 
-export async function fetchCustomers() {
+// Fetch brand data for customer table
+export async function fetchBrands() {
   try {
-    const data = await sql<CustomerField>`
+    const data = await sql<BrandField>`
       SELECT
         id,
         name
-      FROM customers
+      FROM brands
       ORDER BY name ASC
     `;
 
-    const customers = data.rows;
-    return customers;
+    const brands = data.rows;
+    return brands;
   } catch (err) {
     console.error('Database Error:', err);
-    throw new Error('Failed to fetch all customers.');
+    throw new Error('Failed to fetch all brands.');
   }
 }
 
-export async function fetchFilteredCustomers(query: string) {
+export async function fetchFilteredBrands(query: string) {
   try {
-    const data = await sql<CustomersTableType>`
+    const data = await sql<BrandsTableType>`
 		SELECT
-		  customers.id,
-		  customers.name,
-		  customers.email,
-		  customers.image_url,
-		  COUNT(invoices.id) AS total_invoices,
-		  SUM(CASE WHEN invoices.status = 'pending' THEN invoices.amount ELSE 0 END) AS total_pending,
-		  SUM(CASE WHEN invoices.status = 'paid' THEN invoices.amount ELSE 0 END) AS total_paid
-		FROM customers
-		LEFT JOIN invoices ON customers.id = invoices.customer_id
+		  brands.id,
+		  brands.name,
+		  brands.email,
+		  brands.image_url,
+		  COUNT(sentiment.id) AS total_sentiments,
+		  SUM(CASE WHEN sentiment.positive < 50 THEN sentiment.positive ELSE 0 END) AS total_negative,
+		  SUM(CASE WHEN sentiment.positive >= 50 THEN sentiment.positive ELSE 0 END) AS total_positive
+		FROM brands
+		LEFT JOIN sentiment ON brands.id = sentiment.brand_id
 		WHERE
-		  customers.name ILIKE ${`%${query}%`} OR
-        customers.email ILIKE ${`%${query}%`}
-		GROUP BY customers.id, customers.name, customers.email, customers.image_url
-		ORDER BY customers.name ASC
+		  brands.name ILIKE ${`%${query}%`} OR
+        brands.email ILIKE ${`%${query}%`}
+		GROUP BY brands.id, brands.name, brands.email, brands.image_url
+		ORDER BY brands.name ASC
 	  `;
 
-    const customers = data.rows.map((customer) => ({
-      ...customer,
-      total_pending: formatCurrency(customer.total_pending),
-      total_paid: formatCurrency(customer.total_paid),
+    const brands = data.rows.map((brand) => ({
+      ...brand,
+      total_negative: brand.total_negative,
+      total_positive: brand.total_positive,
     }));
 
-    return customers;
+    return brands;
   } catch (err) {
     console.error('Database Error:', err);
-    throw new Error('Failed to fetch customer table.');
+    throw new Error('Failed to fetch filtered brands.');
   }
 }

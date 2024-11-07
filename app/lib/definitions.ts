@@ -2,6 +2,7 @@
 // It describes the shape of the data, and what data type each property should accept.
 // For simplicity of teaching, we're manually defining these types.
 // However, these types are generated automatically if you're using an ORM such as Prisma.
+
 export type User = {
   id: string;
   name: string;
@@ -9,80 +10,82 @@ export type User = {
   password: string;
 };
 
-export type Customer = {
+export type Brand = {
   id: string;
   name: string;
   email: string;
   image_url: string;
 };
 
-export type Invoice = {
+export type Sentiment = {
   id: string;
-  customer_id: string;
-  amount: number;
+  brand_id: string;
+  name: number;
+  positive: number;
+  negative: number;
   date: string;
-  // In TypeScript, this is called a string union type.
-  // It means that the "status" property can only be one of the two strings: 'pending' or 'paid'.
-  status: 'pending' | 'paid';
 };
 
-export type Revenue = {
-  month: string;
-  revenue: number;
+export type CustomerInteractions = {
+  brand: string;
+  interactions: number;
 };
 
-export type LatestInvoice = {
+export type LatestSentiment = {
   id: string;
   name: string;
   image_url: string;
   email: string;
-  amount: string;
+  positive: number;
+  negative: number;
+  date: string;
 };
 
 // The database returns a number for amount, but we later format it to a string with the formatCurrency function
-export type LatestInvoiceRaw = Omit<LatestInvoice, 'amount'> & {
+export type LatestSentimentRaw = Omit<LatestSentiment, 'amount'> & {
   amount: number;
 };
 
-export type InvoicesTable = {
+export type SentimentTable = {
   id: string;
-  customer_id: string;
+  brand_id: string;
   name: string;
   email: string;
   image_url: string;
   date: string;
-  amount: number;
-  status: 'pending' | 'paid';
+  positive: number;
+  negative: number;
 };
 
-export type CustomersTableType = {
+export type BrandsTableType = {
   id: string;
   name: string;
   email: string;
   image_url: string;
-  total_invoices: number;
-  total_pending: number;
-  total_paid: number;
+  total_sentiments: number;
+  total_positive: number;
+  total_negative: number;
 };
 
-export type FormattedCustomersTable = {
+export type FormattedBrandsTable = {
   id: string;
   name: string;
   email: string;
   image_url: string;
-  total_invoices: number;
-  total_pending: string;
-  total_paid: string;
+  total_sentiments: number;
+  total_positive: number;
+  total_negative: number;
 };
 
-export type CustomerField = {
+export type BrandField = {
   id: string;
   name: string;
 };
 
-export type InvoiceForm = {
+export type SentimentForm = {
   id: string;
-  customer_id: string;
-  amount: number;
-  status: 'pending' | 'paid';
+  brand_id: string;
+  positive: number;
+  negative: number;
+  date: string;
 };
