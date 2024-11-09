@@ -49,6 +49,7 @@ export default function BrandInteractionsChart({
           sx={{
             [`& .${pieArcLabelClasses.root}`]: {
               fontSize: 14,
+              fontWeight: 'bold',
             },
           }}
 
