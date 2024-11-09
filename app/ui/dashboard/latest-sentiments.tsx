@@ -3,6 +3,9 @@ import clsx from 'clsx';
 import Image from 'next/image';
 import { lusitana } from '@/app/ui/fonts';
 import { LatestSentiment } from '@/app/lib/definitions';
+
+
+
 export default async function LatestSentiments({
   latestSentiment,
 }: {
@@ -11,7 +14,7 @@ export default async function LatestSentiments({
   return (
     <div className="flex w-full flex-col md:col-span-4">
       <h2 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-        Location of Sentiment
+        Locations of Sentiments
       </h2>
       <div className="flex grow flex-col justify-between rounded-xl bg-gray-50 p-4">
         {/* NOTE: Uncomment this code in Chapter 7 */}
@@ -20,7 +23,7 @@ export default async function LatestSentiments({
           {latestSentiment.map((latestSentiment, i) => {
             return (
               <div
-                key={latestSentiment.id}
+                key={i}
                 className={clsx(
                   'flex flex-row items-center justify-between py-8 my-2',
                   {
@@ -43,7 +46,7 @@ export default async function LatestSentiments({
                     <p className="truncate text-sm font-semibold md:text-base">
                       {latestSentiment.name}
                     </p>
-                    <p className="hidden text-sm text-gray-500 sm:block">
+                    <p className="text-sm text-gray-500">
                       {latestSentiment.email}
                     </p>
                   </div>
