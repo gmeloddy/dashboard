@@ -16,9 +16,10 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { toast } from "@/components/ui/use-toast"
 import { useState } from "react"
 import Link from "next/link"
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const FormSchema = z.object({
   name: z.string().min(2, {
@@ -63,14 +64,16 @@ export function SignUpForn() {
       setTimeout(() => setLoading(false), 6000)
     } else {
       setLoading(false)
-      toast({
-        title: "Cannot create user",
-        description: (
-          <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-            <code className="text-red">{JSON.stringify(data, null, 2)}</code>
-          </pre>
-        ),
-      })
+      const notify = () => toast("User already exists");
+      // toast({
+      //   title: "Cannot create user",
+      //   description: (
+      //     <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+      //       <code className="text-red">{JSON.stringify(data, null, 2)}</code>
+      //     </pre>
+      //   ),
+      // })
+      notify();
     }
   }
 
@@ -140,6 +143,8 @@ export function SignUpForn() {
           <Link href="/login" className="text-black/50 text-sm font-bold underline hover:text-black">Login</Link>
         </div>
       </form>
+
+      <ToastContainer />
     </Form>
   )
 }
