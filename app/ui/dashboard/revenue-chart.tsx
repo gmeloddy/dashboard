@@ -4,7 +4,7 @@ import * as React from 'react';
 import { lusitana } from '@/app/ui/fonts';
 import { CustomerInteractions } from '@/app/lib/definitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { PieChart } from '@mui/x-charts/PieChart';
+import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 
 
 export default function BrandInteractionsChart({
@@ -12,6 +12,15 @@ export default function BrandInteractionsChart({
 }: {
   customerInteractions: CustomerInteractions[];
 }) {
+
+  const calculatePercentage = (value: number, total: number) => {
+    return ((value / total) * 100).toFixed(1); // Returns percentage to one decimal place
+  };
+  
+  const totalInteractions = customerInteractions.reduce(
+    (total, item) => total + item.interactions,
+    0
+  );
 
   const isMobile = useMediaQuery('(max-width:768px)');
   const chartWidth = isMobile ? '100%' : 500; // Set width to full for mobile, fixed for larger screens
@@ -28,15 +37,20 @@ export default function BrandInteractionsChart({
               data: customerInteractions.map((item) => ({
                 id: item.brand, // ID for each item in the chart
                 value: item.interactions, // Value for the pie slice
-                label:  item.brand, // Label for the pie slic
+                label:  item.brand,
               })),
               type: 'pie',
-              arcLabel: 'label',
-            
+              arcLabel: (item) => `${calculatePercentage(item.value, totalInteractions)}%`,
             },
           ]}
           width={400} // Allow full width on mobile
           height={400}
+
+          sx={{
+            [`& .${pieArcLabelClasses.root}`]: {
+              fontSize: 14,
+            },
+          }}
 
           slotProps={{
             legend: {
