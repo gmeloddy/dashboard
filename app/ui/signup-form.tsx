@@ -64,7 +64,7 @@ export function SignUpForn() {
       setTimeout(() => setLoading(false), 6000)
     } else {
       setLoading(false)
-      const notify = () => toast("User already exists");
+      const notify = () => toast("Error signing up");
       // toast({
       //   title: "Cannot create user",
       //   description: (
@@ -91,7 +91,7 @@ export function SignUpForn() {
                 <Input placeholder="Data Science Inc" type="text" {...field} className="rounded-xl" />
               </FormControl>
               <FormDescription>
-                Kindly enter your name
+                Kindly enter your organization name
               </FormDescription>
               <FormMessage className="text-red-500"/>
             </FormItem>
