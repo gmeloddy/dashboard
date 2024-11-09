@@ -7,7 +7,7 @@ import { LoginForm } from '@/app/ui/login-form';
 const LoginPage = () => {
   
   return (
-    <section className='h-screen w-screen bg-white relative px-2 overflow-hidden'>
+    <section className='h-screen w-screen bg-white relative px-2'>
         <div className='md:grid grid-cols-2 h-full place-content-center'>
         <div className='hidden md:block w-full relative md:order-2'>
             {/* <Image src='/logo.png' alt='bg' width={400} height={400} className='absolute translate-x-[50%] right-[50%]  top-[50%] -translate-y-[50%] z-50'/> */}
