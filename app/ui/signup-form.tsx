@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/use-toast"
 import { useState } from "react"
+import Link from "next/link"
 
 const FormSchema = z.object({
   name: z.string().min(2, {
@@ -84,7 +85,7 @@ export function SignUpForn() {
             <FormItem>
               <FormLabel>Organization</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" type="text" {...field} className="rounded-xl" />
+                <Input placeholder="Data Science Inc" type="text" {...field} className="rounded-xl" />
               </FormControl>
               <FormDescription>
                 Kindly enter your name
@@ -133,6 +134,11 @@ export function SignUpForn() {
           
           <span className={`${loading ? "ml-4": ""}`}>Create account</span>
         </Button>
+
+        <div className="text-sm text-black/50 text-center">
+          <p className="text-sm">Already have an account?</p>
+          <Link href="/login" className="text-black/50 text-sm font-bold underline hover:text-black">Login</Link>
+        </div>
       </form>
     </Form>
   )

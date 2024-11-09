@@ -111,6 +111,7 @@ import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/use-toast"
 import { signIn } from "next-auth/react"
 import { useState } from "react"
+import Link from "next/link"
 
 const FormSchema = z.object({
   email: z.string().email({
@@ -207,6 +208,13 @@ export function LoginForm() {
           
           <span className={`${loading ? "ml-4": ""}`}>Login</span>
         </Button>
+
+
+        {/* already have an account */}
+        <div className="text-sm text-black/50 text-center">
+          <p className="text-sm">Don't have an account?</p>
+          <Link href="/signup" className="text-black/50 text-sm font-bold underline hover:text-black">Sign up</Link>
+        </div>
       </form>
     </Form>
   )
