@@ -1,11 +1,22 @@
-// middleware.ts (or _middleware.ts in some setups)
+import { NextResponse, NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-import NextAuth from 'next-auth';
-import { authConfig } from '@/app/lib/auth.config';
+export function middleware(request: NextRequest) {
+  async function middleware(req: any) {
+    const token = await getToken({ req });
 
-export default NextAuth(authConfig).auth;
+    console.log("Token from the middleware: ", token);
+    
+    // Check for token and redirect if not present
+    if (!token) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
 
-export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
-};
+    // Token is present, continue to next response
+    return NextResponse.next();
+  }
+  
+  return middleware(request);
+}
 
+export const config = { matcher: ["/dashboard"] };

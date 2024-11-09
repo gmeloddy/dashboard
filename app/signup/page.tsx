@@ -1,10 +1,8 @@
-"use client";
-
 import Image from 'next/image'
 import Link from 'next/link'
-import { LoginForm } from '@/app/ui/login-form';
+import { SignUpForn } from '@/app/ui/signup-form';
 
-const LoginPage = () => {
+const SignUpPage = () => {
   
   return (
     <section className='h-screen w-screen bg-white relative px-2'>
@@ -16,7 +14,7 @@ const LoginPage = () => {
             alt="Random image" />
               <div className="absolute inset-0 bg-green-200 opacity-60 rounded-md"></div>
                   {/* <Image src='/logo.png' alt='bg' width={400} height={400} className='absolute translate-x-[50%] right-[50%]  top-[50%] -translate-y-[50%] z-50'/>       */}
-          </div>
+            </div>
           
           <div className='p-4 md:p-8 text-sm md:text-lg w-full max-w-[600px] place-self-center h-screen md:h-auto flex flex-col justify-center items-center md:block overflow-hidden'>
             <Link href="/" className='px-4'>
@@ -24,13 +22,13 @@ const LoginPage = () => {
                 <Image src='/logo.png' alt='logo' width={100} height={100} className='p-2'/>
                 <div className='border-l-2 h-32 mx-8 border-black/30'></div>
                 <div>
-                  <p className='text-green-dsn font-extrabold text-xl'>Login</p>
+                  <p className='text-green-dsn font-extrabold text-xl'>Sign Up</p>
                 </div>
               </div>
             </Link>
 
             <div className='shadow-xl bg-transparent p-4 place-content-center pb-8'>
-              <LoginForm />
+              <SignUpForn />
             </div>
             
           </div>
@@ -39,4 +37,4 @@ const LoginPage = () => {
   )
 }
 
-export default LoginPage;
+export default SignUpPage;
